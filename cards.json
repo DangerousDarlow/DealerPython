@@ -6,7 +6,8 @@
     },
     {
         "name": "merlin",
-        "loyalty": "good"
+        "loyalty": "good",
+        "count": 1
     },
     {
         "name": "minion",

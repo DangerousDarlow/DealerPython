@@ -1,12 +1,29 @@
 import json
 import random
 
-def get_count(card):
-    if 'count' in card:
-        return card['count']
+def get_value(obj, key):
+    if key in obj:
+        return obj[key]
     else:
-        card['count'] = 1
-        return 1
+        obj[key] = 0
+        return 0
+
+
+def change_value(obj, key, change):
+    initial = get_value(obj, key)
+    obj[key] = initial + change
+
+
+def inc_value(obj, key):
+    change_value(obj, key, 1)
+
+
+def dec_value(obj, key):
+    change_value(obj, key, -1)
+    
+
+def get_count(card):
+    return get_value(card, 'count')
 
 
 def get_total(cards):
@@ -32,7 +49,7 @@ def draw_card(cards, random):
             return card
 
 
-def random_values(n):
+def get_random_values(n):
     values = []
     for _ in range(n):
         values.append(random.random())
@@ -41,28 +58,28 @@ def random_values(n):
 
 
 if __name__ == "__main__":
-    cards = {}
-    with open('cards.json') as cards_file:
-        cards = json.load(cards_file)
-
     players = {}
     with open('players.json') as players_file:
         players = json.load(players_file)
 
-    randoms = random_values(len(players))
+    cards = {}
+    with open('cards.json') as cards_file:
+        cards = json.load(cards_file)
 
-    for index in range(len(players)):
-        print('index', index, 'random', randoms[index])
+    random_values = get_random_values(len(players))
 
-        player = players[index]
+    for player_index in range(len(players)):
+        print('index', player_index, 'random', random_values[player_index])
+
+        player = players[player_index]
         calculate_probabilities(cards)
         print(json.dumps(cards, indent=2))
 
-        card = draw_card(cards, randoms[index])
-        player['card'] = card
+        card = draw_card(cards, random_values[player_index])
+
+        inc_value(player, card['name'])
         print(json.dumps(player, indent=2))
 
-        count = get_count(card)
-        card['count'] = count -1
+        dec_value(card, 'count')
         print()
         print()
