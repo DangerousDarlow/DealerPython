@@ -1,0 +1,16 @@
+[
+    {
+        "name": "servant",
+        "loyalty": "good",
+        "count": 2
+    },
+    {
+        "name": "merlin",
+        "loyalty": "good"
+    },
+    {
+        "name": "minion",
+        "loyalty": "evil",
+        "count": 2
+    }
+]
