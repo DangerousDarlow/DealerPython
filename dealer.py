@@ -66,20 +66,23 @@ if __name__ == "__main__":
     with open('cards.json') as cards_file:
         cards = json.load(cards_file)
 
-    random_values = get_random_values(len(players))
+    for player in players:
+        for card in cards:
+            player[card['name']] = 0
 
-    for player_index in range(len(players)):
-        print('index', player_index, 'random', random_values[player_index])
+    for iteration in range(10000):
+        cards = {}
+        with open('cards.json') as cards_file:
+            cards = json.load(cards_file)
 
-        player = players[player_index]
-        calculate_probabilities(cards)
-        print(json.dumps(cards, indent=2))
+        random_values = get_random_values(len(players))
 
-        card = draw_card(cards, random_values[player_index])
+        for player_index in range(len(players)):
+            player = players[player_index]
+            calculate_probabilities(cards)
 
-        inc_value(player, card['name'])
-        print(json.dumps(player, indent=2))
+            card = draw_card(cards, random_values[player_index])
+            inc_value(player, card['name'])
+            dec_value(card, 'count')
 
-        dec_value(card, 'count')
-        print()
-        print()
+    print(json.dumps(players, indent=2))
