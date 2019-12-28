@@ -1,6 +1,8 @@
+import argparse
 import copy
 import json
 import random
+import requests
 
 def get_value(obj, key):
     if key in obj:
@@ -50,7 +52,34 @@ def draw_card(cards, random):
             return card
 
 
+def get_random_values_from_random_org(n):
+    print(f'requesting {n} random numbers from random.org')
+
+    response = requests.post(
+        'https://api.random.org/json-rpc/2/invoke',
+        json={
+            "jsonrpc": "2.0",
+            "method": "generateDecimalFractions",
+            "params": {
+                "apiKey": f"{args.api_key}",
+                "n": n,
+                "decimalPlaces": 4,
+                "replacement": True
+            },
+            "id": 1
+        }
+    )
+
+    if response.status_code != 200:
+        raise f'Random.org returned response {response.status_code}, {response.content}'
+
+    return response.json()['result']['random']['data']
+
+
 def get_random_values(n):
+    if args.api_key != None:
+        return get_random_values_from_random_org(n)
+
     values = []
     for _ in range(n):
         values.append(random.random())
@@ -69,6 +98,12 @@ def initialise_player_data():
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser('draw cards for The Resistance: Avalon and show draw data')
+    parser.add_argument('games', type=int, help='number of games per session')
+    parser.add_argument('--iterations', metavar='itr', type=int, default=1, help='number of iterations, default 1')
+    parser.add_argument('--api-key', metavar='key', type=str, help='API key for random.org. If not None then random values are obtained from random.org.')
+    args = parser.parse_args()
+
     cards = {}
     with open('cards.json') as cards_file:
         cards = json.load(cards_file)
@@ -79,16 +114,18 @@ if __name__ == "__main__":
 
     initialise_player_data()
 
-    for iteration in range(100000):
-        iteration_cards = copy.deepcopy(cards)
+    random_values = get_random_values(len(players) * args.games * args.iterations)
+    random_values_index = 0
 
-        random_values = get_random_values(len(players))
+    for game in range(args.games):
+        iteration_cards = copy.deepcopy(cards)
 
         for player_index in range(len(players)):
             player = players[player_index]
             calculate_probabilities(iteration_cards)
 
-            card = draw_card(iteration_cards, random_values[player_index])
+            card = draw_card(iteration_cards, random_values[random_values_index])
+            random_values_index += 1
             inc_value(player, card['name'])
 
             # track if drawn card for this player is the same as last draw
