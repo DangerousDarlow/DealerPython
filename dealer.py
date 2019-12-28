@@ -1,3 +1,4 @@
+import copy
 import json
 import random
 
@@ -57,32 +58,46 @@ def get_random_values(n):
     return values
 
 
-if __name__ == "__main__":
-    players = {}
-    with open('players.json') as players_file:
-        players = json.load(players_file)
+def initialise_player_data():
+    for player in players:
+        player['last'] = 'none'
+        player['consecutive'] = 0
 
+        # Cards are initialised with 0 value to ensure the same display order for all players
+        for card in cards:
+            player[card['name']] = 0
+
+
+if __name__ == "__main__":
     cards = {}
     with open('cards.json') as cards_file:
         cards = json.load(cards_file)
 
-    for player in players:
-        for card in cards:
-            player[card['name']] = 0
+    players = {}
+    with open('players.json') as players_file:
+        players = json.load(players_file)
 
-    for iteration in range(10000):
-        cards = {}
-        with open('cards.json') as cards_file:
-            cards = json.load(cards_file)
+    initialise_player_data()
+
+    for iteration in range(100000):
+        iteration_cards = copy.deepcopy(cards)
 
         random_values = get_random_values(len(players))
 
         for player_index in range(len(players)):
             player = players[player_index]
-            calculate_probabilities(cards)
+            calculate_probabilities(iteration_cards)
 
-            card = draw_card(cards, random_values[player_index])
+            card = draw_card(iteration_cards, random_values[player_index])
             inc_value(player, card['name'])
+
+            # track if drawn card for this player is the same as last draw
+            last = player['last']
+            if last == card['name']:
+                inc_value(player, 'consecutive')
+            else:
+                player['last'] = card['name']
+
             dec_value(card, 'count')
 
     print(json.dumps(players, indent=2))
